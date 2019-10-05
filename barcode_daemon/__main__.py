@@ -2,6 +2,7 @@
 import struct
 import time
 import sys
+import socket
 
 char_table = {
     2: "1",
@@ -19,28 +20,27 @@ char_table = {
 
 infile_path = "/dev/input/event" + (sys.argv[1] if len(sys.argv) > 1 else "0")
 
-#long int, long int, unsigned short, unsigned short, unsigned int
 FORMAT = 'llHHI'
 EVENT_SIZE = struct.calcsize(FORMAT)
 
-#open file in binary mode
+#open event handler file in binary mode
 in_file = open(infile_path, "rb")
 
+#read the scanner in loop
 event = in_file.read(EVENT_SIZE)
+
+sock = socket.socket(socket.AF_INET, 
+                     socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
 while event:
     (tv_sec, tv_usec, type, code, value) = struct.unpack(FORMAT, event)
-
-    #if type != 0 or code != 0 or value != 0:
-    #    print("Event type %u, code %u, value %u at %d.%d" % \
-    #        (type, code, value, tv_sec, tv_usec))
+   
+    #these events represent virtual keypress coming from the scanner
     if type == 1 and value == 1:
-        print(char_table[code],end = '')
-        #if value > 2137:
-        #    print('key is: ' + str(value - 458781))
-    #else:
-    #    # Events with code, type and value == 0 are "separator" events
-    #    print("===========================================")
+        c = char_table.get(code,"")
+        print(c,end = '')
+        sock.sendto(c.encode('utf8'),('<broadcast>',2137))
 
     event = in_file.read(EVENT_SIZE)
 
