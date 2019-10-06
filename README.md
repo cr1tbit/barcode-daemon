@@ -1,10 +1,10 @@
-## Barcode scanner daemon
+# Barcode scanner daemon
 
 This flask-socketIO-based daemon has been created to allow multiple apps to work with barcode scanners. The cheap, PS2-based ones. They enumerate as a basic keyboard, which may be a little annoying to work with.
 
 It is meant to run on a headless system (Raspberry Pi). The keyboard strokes are simply read straight from `/dev/input/event*`, not intercepted. They will still become registered by your OS.
 
-I just set autologin on my raspi, and added an auto-executing null script by adding these lines to .bashrc:
+My solution was to simply enable autologin on my raspi, and adding an auto-executing null script. Added these lines to `.bashrc`:
 
 ```bash
 if [ $(tty) == /dev/tty1 ]; then
