@@ -6,7 +6,7 @@ import logging
 from .input_event_wrapper import InputEventWrapper
 from flask import Flask
 from flask_socketio import SocketIO, emit
-
+import sys
 
 logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger('werkzeug')
@@ -27,7 +27,10 @@ if __name__ == '__main__':
     barcode_queue = queue.Queue(maxsize=20)
     
     def input_reader() -> None:
-        wrap = InputEventWrapper("/dev/input/event3")
+        if len(sys.argv) >= 2:
+            wrap = InputEventWrapper(sys.argv[1])
+        else:
+            wrap = InputEventWrapper("/dev/input/event0")
         while True:
             try:
                 barcode_queue.put(wrap.get_barcode())
