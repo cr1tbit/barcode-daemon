@@ -24,22 +24,24 @@ def test_message(message):
     emit('my response', {'data': 'got it!'})
 
 if __name__ == '__main__':    
-    barcode_queue = queue.Queue()
+    barcode_queue = queue.Queue(maxsize=20)
     
     def input_reader() -> None:
         wrap = InputEventWrapper("/dev/input/event3")
         while True:
-            barcode_queue.put(wrap.get_barcode())
+            try:
+                barcode_queue.put(wrap.get_barcode())
+            except queue.Full:
+                logging.error("barcode queue full! Dropping scanned barcode.")
     
     def barcode_emitter() -> None:
+        logging.info("Starting barcode emitter thread")
         while True:
-            while not barcode_queue.empty():
-                barcode = barcode_queue.get()
-                logging.info("emmiting barcode: " + str(barcode))
-                socketio.emit('barcodes', 
-                    {'data': barcode},
-                    namespace='/barcodes')
-            sleep(0.1)
+            barcode = barcode_queue.get()
+            logging.info("emmiting barcode: " + str(barcode))
+            socketio.emit('barcodes', 
+                {'data': barcode},
+                namespace='/barcodes')
     
     t_emmiter = Thread(target=barcode_emitter)
     t_emmiter.daemon = True
