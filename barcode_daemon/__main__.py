@@ -27,7 +27,7 @@ if __name__ == '__main__':
     barcode_queue = queue.Queue()
     
     def input_reader() -> None:
-        wrap = InputEventWrapper("/dev/input/event0")
+        wrap = InputEventWrapper("/dev/input/event3")
         while True:
             barcode_queue.put(wrap.get_barcode())
     
